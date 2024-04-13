@@ -1,0 +1,21 @@
+
+
+universe = vanilla
+
+log = log/$(Cluster)_$(airport).log
+error = error/$(Cluster)_$(airport).err
+output = output/$(Cluster)_$(airport).out
+
+executable = ./process.sh
+arguments = $(airport)
+
+# caution: modified files will come back, overwriting original versions
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files =  process.sh, /home/bjschneider/finalproject/itinerarires.csv, airports/$airport.csv
+
+request_cpus = 3
+request_memory = 20GB
+request_disk = 3MB
+
+queue airport from airport.txt
