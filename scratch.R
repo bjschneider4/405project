@@ -28,3 +28,14 @@ airportData$travelDuration <- sapply(airportData[["travelDuration"]], travelTime
 ## Converts all dates from strings to date objects in R
 airportData$searchDate <- as.Date(airportData[["searchDate"]])
 airportData$flightDate <- as.Date(airportData[["flightDate"]])
+
+## Creates number of different airlines column
+airportData$numAirlines <- sapply(airportData[["segmentsAirlineName"]], unique)
+airportData$numAirlines <- sapply(airportData[["numAirlines"]], length)
+## Creates number of different cabin codes column
+airportData$numCabinCodes <- sapply(airportData[["segmentsCabinCode"]], unique)
+airportData$numCabinCodes <- sapply(airportData[["numCabinCodes"]], length)
+
+airportData <- na.omit(airportData)
+
+return(airportData)
