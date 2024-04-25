@@ -4,7 +4,7 @@ args = (commandArgs(trailingOnly=TRUE))
 if(length(args) == 1){
   airport = args[1]
 } else {
-  cat('usage: Rscript hw4.R <template spectrum> <data directory>\n', file=stderr())
+  cat('usage: Rscript process.R <template spectrum> <data directory>\n', file=stderr())
   stop()
 }
 
@@ -16,7 +16,11 @@ airportData=read.csv(paste0(airport, ".csv"), header=FALSE, col.names=c("searchD
 airportData$segmentsAirlineName <- strsplit(airportData[["segmentsAirlineName"]], "\\|\\|")
 airportData$segmentsCabinCode <- strsplit(airportData[["segmentsCabinCode"]], "\\|\\|")
 
-airportData$segments <- sapply(airportData[["segmentsCabinCode"]], length)
+airportData$segmentsCabinCode <- sapply(airportData[["segmentsCabinCode"]], unique)
+airportData$segmentsCabinCode <- sapply(airportData[["segmentsCabinCode"]], length)
+
+airportData$numAirlines <- sapply(airportData[["segmentsAirlineName"]], unique)
+airportData$numAirlines <- sapply(airportData[["segmentsAirlineName"]], length)
 
 airportData$searchDate <- as.Date(airportData$searchDate)
 airportData$flightDate <- as.Date(airportData$flightDate)
@@ -39,7 +43,19 @@ print(head(airportData))
 prices=tapply(X=airportData$totalfare, INDEX=airportData$arrivalairport, FUN=mean, na.rm=TRUE)
 print(prices)
 
-model <- lm(airportData$totalfare ~ airportData$seatsremaining+airportData$segments+airportData$datedifference+airportData$travelDuration, data=airportData)
+averageprice=tapply(X=airportData$totalfare, INDEX=airportData$departureairport, FUN=mean, na.rm=TRUE)
+print(averageprice)
+
+dateprice=tapply(X=airportData$totalfare, INDEX=airportData$datedifference, FUN=mean, na.rm=TRUE)
+print(dateprice)
+
+
+airportdata <- na.omit(airportData)
+
+correlations <- cor(airportdata[, sapply(airportdata,is.numeric)]) 
+print(correlations) 
+
+model <- lm(airportData$totalfare ~ airportData$seatsremaining+airportData$segmentsCabinCode+airportData$numAirlines+airportData$datedifference+airportData$travelDuration, data=airportData)
 
 print(summary(model))
 
