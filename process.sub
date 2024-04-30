@@ -2,9 +2,9 @@
 
 universe = vanilla
 
-log = log/$(Cluster)_$(airport).log
-error = error/$(Cluster)_$(airport).err
-output = output/$(Cluster)_$(airport).out
+log = log/$(airport).log
+error = error/$(airport).err
+output = output/$(airport).out
 
 executable = ./process.sh
 arguments = $(airport)  

@@ -4,7 +4,7 @@ args = (commandArgs(trailingOnly=TRUE))
 if(length(args) == 1){
   airport = args[1]
 } else {
-  cat('usage: Rscript process.R <template spectrum> <data directory>\n', file=stderr())
+  cat('usage: Rscript process.R airport', file=stderr())
   stop()
 }
 
@@ -25,6 +25,10 @@ airportData$numAirlines <- sapply(airportData[["segmentsAirlineName"]], length)
 airportData$searchDate <- as.Date(airportData$searchDate)
 airportData$flightDate <- as.Date(airportData$flightDate)
 
+airportData$flightmonth <- format(airportData$flightDate, "%m")
+airportData$searchmonth <- format(airportData$searchDate, "%m")
+airportData$searchweekday <- weekdays(airportData$searchDate)
+airportData$flightweekday <- weekdays(airportData$flightDate)  
 airportData$datedifference <- airportData$flightDate - airportData$searchDate
 travelTime <- function(inp) {
 hpos <- regexpr("\\d+H", inp)
@@ -55,8 +59,32 @@ airportdata <- na.omit(airportData)
 correlations <- cor(airportdata[, sapply(airportdata,is.numeric)]) 
 print(correlations) 
 
-model <- lm(airportData$totalfare ~ airportData$seatsremaining+airportData$segmentsCabinCode+airportData$numAirlines+airportData$datedifference+airportData$travelDuration, data=airportData)
+model <- lm(airportData$totalfare ~ airportData$seatsremaining+airportData$datedifference+airportData$travelDuration+airportData$searchweekday+airportData$flightweekday, data=airportData)
 
 print(summary(model))
 
-#capture.output(summary(model), paste0(airport, ".txt")
+n <- length(airportData) 
+testlength <- n*.2
+trainlength <- n*.8
+print(testlength)
+print(trainlength)
+traindata <- airportData[1:trainlength, ]
+testdata <- airportData[(trainlength:trainlength+testlength), ]
+
+
+trainmodel <- lm(airportData$totalfare ~ airportData$seatsremaining++airportData$flightmonth+airportData$datedifference+airportData$travelDuration+airportData$searchweekday+airportData$flightweekday, data=traindata)
+print(summary(trainmodel))
+
+predictions <- predict(trainmodel , newdata=testdata)
+
+squared_errors <- (predictions - testdata$totalfare)^2
+squared_errors <- squared_errors[!is.na(squared_errors)]  # Exclude NAs
+
+print(sqrt(mean(squared_errors)))
+
+rmse <- sqrt(mean(squared_errors))
+print(rmse)
+
+
+write.csv(rmse, "mytest.csv")
+
